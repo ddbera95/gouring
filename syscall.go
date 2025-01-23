@@ -41,11 +41,27 @@ func io_uring_register(fd int, opcode uint32, arg unsafe.Pointer, nrArgs uintptr
 	return
 }
 
-//go:linkname mmap syscall.mmap
-func mmap(addr unsafe.Pointer, length uintptr, prot int, flags int, fd int, offset int64) (xaddr unsafe.Pointer, err error)
+func mmap(addr unsafe.Pointer, length uintptr, prot int, flags int, fd int, offset int64) (xaddr unsafe.Pointer, err error) {
+	r0, _, e1 := syscall.Syscall6(syscall.SYS_MMAP, uintptr(addr), length, uintptr(prot), uintptr(flags), uintptr(fd), uintptr(offset))
+	xaddr = unsafe.Pointer(r0)
+	switch e1 {
+	case 0:
+		err = nil
+	default:
+		err = e1
+	}
+	return
+}
 
-//go:linkname munmap syscall.munmap
-func munmap(addr unsafe.Pointer, length uintptr) (err error)
+func munmap(addr unsafe.Pointer, length uintptr) (err error) {
+	_, _, e1 := syscall.Syscall(syscall.SYS_MUNMAP, uintptr(addr), length, 0)
+	switch e1 {
+	case 0:
+		return nil
+	default:
+		return e1
+	}
+}
 
 //
 
